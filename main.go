@@ -1,88 +1,56 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"FileOrganizer/cmd"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
-const IMAGE_TYPE = 0
-const AUDIO_TYPE = 1
-const VIDEO_TYPE = 2
-const DOCUMENT_TYPE = 3
-const COMPRESSED_TYPE = 4
-const UNDEFINED_TYPE = -1
+type Directories []os.DirEntry
 
-var ALLOWED_TYPES = map[int][]string{
-	IMAGE_TYPE:    {".jpg", ".jpeg", ".png", ".gif", ".svg", ".bmp", ".webp", ".psd", ".ico", ".heic", ".raw", ".ai"},
-	AUDIO_TYPE:    {".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma", ".alac", ".aiff", ".pcm"},
-	VIDEO_TYPE:    {".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".mpeg", ".3gp", ".ogg"},
-	DOCUMENT_TYPE: {".doc", ".docx", ".pdf", ".txt", ".rtf", ".odt", ".ppt", ".pptx", ".xls", ".xlsx", ".csv", ".html", ".xml", ".md", ".epub", ".pages"},
+func (entries Directories) filterFiles() *[]string {
+	var files []string
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		files = append(files, entry.Name())
+	}
+
+	return &files
 }
 
 func main() {
-	dir := os.Args[1]
+	//dir := os.Args[1]
+	//
+	//var store models.DataStore
+	//
+	//store = models.New("")
+	//
+	//files, err := os.ReadDir(dir)
+	//
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//var filesToOrder = *Directories(files).filterFiles()
+	//
+	//for _, fileName := range filesToOrder {
+	//	fileType, err := store.GetType(fileName)
+	//
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		return
+	//	}
+	//
+	//	err = fileType.MoveToFolder(filepath.Join(dir, fileName))
+	//
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		return
+	//	}
+	//	fmt.Printf("%s moved to %s\n", fileName, filepath.Join(dir, fileType.FolderName, fileName))
+	//}
 
-	files, err := os.ReadDir(dir)
-	var filesToOrder []string
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		filesToOrder = append(filesToOrder, file.Name())
-	}
-
-	for _, fileName := range filesToOrder {
-		fileType := determineType(fileName)
-
-		switch fileType {
-		case IMAGE_TYPE:
-			_ = moveToFolder(filepath.Join(dir, fileName), filepath.Join(dir, "images"))
-		case AUDIO_TYPE:
-			_ = moveToFolder(filepath.Join(dir, fileName), filepath.Join(dir, "audio"))
-		case VIDEO_TYPE:
-			_ = moveToFolder(filepath.Join(dir, fileName), filepath.Join(dir, "videos"))
-		case DOCUMENT_TYPE:
-			_ = moveToFolder(filepath.Join(dir, fileName), filepath.Join(dir, "documents"))
-		default:
-			fmt.Printf("Unsupported file type: %s\n", fileName)
-		}
-	}
-}
-
-func determineType(file string) int {
-	for key, value := range ALLOWED_TYPES {
-		for _, ext := range value {
-			if strings.HasSuffix(file, ext) {
-				return key
-			}
-		}
-	}
-	return UNDEFINED_TYPE
-}
-
-func moveToFolder(src, dest string) error {
-	if _, err := os.Stat(dest); os.IsNotExist(err) {
-		err := os.Mkdir(dest, 0777)
-		if err != nil {
-			return err
-		}
-	}
-
-	fileName := filepath.Base(src)
-
-	err := os.Rename(src, filepath.Join(dest, fileName))
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	cmd.Execute()
 }
