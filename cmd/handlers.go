@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/tabwriter"
 )
@@ -46,7 +47,34 @@ func addCategory(fileType, folderName string, extensions []string) {
 		return
 	}
 
-	err := store.AddCategory(fileType, folderName, extensions)
+	var extensionsToAdd []string
+	var extensionsToRemove []string
+
+	for _, extension := range extensions {
+		if strings.HasPrefix(extension, "-") {
+			rawExtension := strings.ReplaceAll(extension, "-", "")
+			if strings.HasPrefix(rawExtension, ".") {
+				extensionsToRemove = append(extensionsToRemove, rawExtension)
+			} else {
+				extensionsToRemove = append(extensionsToRemove, "."+extension)
+			}
+		} else {
+			if strings.HasPrefix(extension, ".") {
+				extensionsToAdd = append(extensionsToAdd, extension)
+			} else {
+				extensionsToAdd = append(extensionsToAdd, "."+extension)
+			}
+		}
+	}
+
+	err := store.AddCategory(fileType, folderName, extensionsToAdd)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = store.RemoveExtensionsFromCategory(fileType, extensionsToRemove)
 
 	if err != nil {
 		fmt.Println(err)
@@ -65,4 +93,36 @@ func removeCategory(fileType string) {
 
 	fmt.Println("Successfully removed")
 	DisplayCategories(false)
+}
+
+func organizeFiles(dir string) {
+	files, err := os.ReadDir(dir)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		fileName := file.Name()
+
+		category, err := store.GetType(fileName)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		err = category.MoveToFolder(filepath.Join(dir, fileName))
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		fmt.Printf("%s moved to %s\n", fileName, filepath.Join(dir, category.FolderName, fileName))
+	}
 }

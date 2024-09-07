@@ -20,7 +20,6 @@ var rootCmd = &cobra.Command{
 	Short:   "Org is a file organizer",
 	Long:    `Org is a file organizer that sorts your files into folders for easy access`,
 	Version: "0.1",
-	//Run: func(cmd *cobra.Command, args []string) {}
 }
 
 var categoryListCmd = &cobra.Command{
@@ -45,7 +44,15 @@ var addCategoryCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		category := strings.TrimSpace(args[0])
-		addCategory(category, folderName, extensions)
+		var validExtensions = []string{}
+
+		for _, extension := range extensions {
+			validExtensions = append(
+				validExtensions,
+				strings.Split(strings.ReplaceAll(extension, " ", ""), ",")...,
+			)
+		}
+		addCategory(category, folderName, validExtensions)
 	},
 }
 
@@ -69,6 +76,23 @@ var removeCategoryCmd = &cobra.Command{
 	},
 }
 
+var organizeCmd = &cobra.Command{
+	Use: "organize",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("you must provide a directory to organize")
+		}
+		if strings.TrimSpace(args[0]) == "" {
+			return errors.New("you must provide a directory to organize")
+		}
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		organizeFiles(args[0])
+	},
+	Example: "org organize [directory]",
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -81,5 +105,5 @@ func init() {
 	addCategoryCmd.Flags().StringVarP(&folderName, "folder", "f", "", "Folder name for new category")
 	addCategoryCmd.Flags().StringArrayVarP(&extensions, "ext", "e", []string{}, "List of extensions for new category")
 
-	rootCmd.AddCommand(categoryListCmd, addCategoryCmd, removeCategoryCmd)
+	rootCmd.AddCommand(categoryListCmd, addCategoryCmd, removeCategoryCmd, organizeCmd)
 }
