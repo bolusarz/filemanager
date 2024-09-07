@@ -18,21 +18,30 @@ var folderName string
 var rootCmd = &cobra.Command{
 	Use:     "org",
 	Short:   "Org is a file organizer",
-	Long:    `Org is a file organizer that sorts your files into folders for easy access`,
+	Long:    `Org is a file organizer that categorizes and moves files into folders based on their extensions.`,
 	Version: "0.1",
 }
 
 var categoryListCmd = &cobra.Command{
-	Use: "category",
+	Use:   "category",
+	Short: "Lists all file categories",
+	Long:  "Displays a list of all categories used for organizing files, optionally with extensions.",
+	Example: `org category 
+org category --verbose`,
 	Run: func(cmd *cobra.Command, args []string) {
 		DisplayCategories(verbose)
 	},
 }
 
 var addCategoryCmd = &cobra.Command{
-	Use:     "add",
-	Example: "org add [category]",
-	Short:   "Adds a category to the list",
+	Use:   "add [category]",
+	Short: "Adds a new file category",
+	Long: `Creates a new file category with a folder name and a list of associated file extensions.
+				You can also remove pre-existing extensions by prepending a dash. The flags are also optional`,
+	Example: ` 
+		org add documents --ext ".pdf,.docx" --folder "Documents" 
+		To Remove Extensions: org add documents --ext "-.pdf"
+			`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("you must provide a category")
@@ -44,7 +53,7 @@ var addCategoryCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		category := strings.TrimSpace(args[0])
-		var validExtensions = []string{}
+		var validExtensions []string
 
 		for _, extension := range extensions {
 			validExtensions = append(
@@ -57,10 +66,10 @@ var addCategoryCmd = &cobra.Command{
 }
 
 var removeCategoryCmd = &cobra.Command{
-	Use:        "remove",
-	ArgAliases: []string{"category"},
-	Example:    "org remove [category]",
-	Short:      "Removes a category",
+	Use:     "remove [category]",
+	Short:   "Removes a file category",
+	Long:    `Removes an existing file category from the list of available categories.`,
+	Example: `org remove documents`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("you must provide a category")
@@ -77,7 +86,10 @@ var removeCategoryCmd = &cobra.Command{
 }
 
 var organizeCmd = &cobra.Command{
-	Use: "organize",
+	Use:     "organize [directory]",
+	Short:   "Organizes files in a directory",
+	Long:    `Organizes files in the specified directory by moving them into folders based on their categories and file extensions.`,
+	Example: "org organize /path/to/directory",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("you must provide a directory to organize")
@@ -90,7 +102,6 @@ var organizeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		organizeFiles(args[0])
 	},
-	Example: "org organize [directory]",
 }
 
 func Execute() {
