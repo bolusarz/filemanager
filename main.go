@@ -1,8 +1,6 @@
 package main
 
-import (
-	"FileOrganizer/cmd"
-)
+import "FileOrganizer/cmd"
 
 func main() {
 	cmd.Execute()

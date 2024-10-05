@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var store = models.New("")
+var store = models.NewFileDataStore("")
 
 var verbose bool
 var extensions []string

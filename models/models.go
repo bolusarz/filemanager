@@ -13,7 +13,7 @@ type DataStore interface {
 	RemoveExtensionsFromCategory(fileType string, extensions []string) error
 	SetCategoryFolder(fileType, folderName string) error
 	GetCategories() ([]*FileCategory, error)
-	GetType(fileName string) (FileCategory, error)
+	GetType(fileName string) (*FileCategory, error)
 }
 
 type FileCategory struct {

@@ -17,7 +17,7 @@ type FileDataStore struct {
 	storagePath string
 }
 
-func New(storagePath string) *FileDataStore {
+func NewFileDataStore(storagePath string) DataStore {
 	storage := FileDataStore{storagePath: storagePath}
 	storage.Init()
 	return &storage
@@ -70,19 +70,19 @@ func (f FileDataStore) GetCategories() ([]*FileCategory, error) {
 	return categories, nil
 }
 
-func (f FileDataStore) GetType(fileName string) (FileCategory, error) {
+func (f FileDataStore) GetType(fileName string) (*FileCategory, error) {
 	categories, err := f.GetCategories()
 
 	if err != nil {
-		return FileCategory{}, err
+		return nil, err
 	}
 
 	for _, category := range categories {
 		if category.IsOfType(fileName) {
-			return *category, nil
+			return category, nil
 		}
 	}
-	return FileCategory{}, errors.New(fmt.Sprintf("Category for File: %s not found", fileName))
+	return nil, errors.New(fmt.Sprintf("Category for File: %s not found", fileName))
 }
 
 func (f FileDataStore) AddCategory(fileType string, folderName string, extensions []string) error {
@@ -236,10 +236,10 @@ func (f FileDataStore) SetCategoryFolder(fileType, folderName string) error {
 		if category.FileType == fileType {
 			category.FolderName = folderName
 
-			//err = saveToFile(categories, filepath.Join(f.storagePath, storeFileName))
-			//if err != nil {
-			//	return err
-			//}
+			err = saveToFile(categories, filepath.Join(f.storagePath, storeFileName))
+			if err != nil {
+				return err
+			}
 
 			return nil
 		}
